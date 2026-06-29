@@ -124,7 +124,7 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 .tbl tbody tr:hover td{background:var(--color-background-secondary)}
 .tbl tbody tr.selected td{background:#E6F1FB}
 .tbl col.c-op{width:70px}.tbl col.c-date{width:100px}.tbl col.c-seq{width:80px}
-.tbl col.c-amt{width:90px}.tbl col.c-bank{width:130px}.tbl col.c-last5{width:90px}.tbl col.c-name{width:auto}
+.tbl col.c-amt{width:90px}.tbl col.c-bank{width:130px}.tbl col.c-last5{width:90px}.tbl col.c-acct{width:110px}.tbl col.c-name{width:auto}
 .btn-sel{padding:5px 14px;font-size:12px;font-weight:500;border:none;border-radius:var(--border-radius-md);cursor:pointer;background:#185FA5;color:#fff;min-width:52px}
 .btn-sel:hover{background:#0C447C}
 .btn-sel.active{background:#0C447C}
@@ -420,9 +420,16 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 
 /* ── 優化：modal-head 改善 ── */
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:0.5px solid var(--color-border-tertiary);position:sticky;top:0;background:var(--color-background-primary);z-index:10}
+
+/* ── 成功提示 Toast ── */
+.toast-wrap{position:fixed;top:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:8px;padding:12px 18px;background:#27500A;color:#fff;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,0.18);opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <div class="page-header">
   <div>
@@ -518,28 +525,13 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 
       <!-- 現金 -->
       <div class="rule-panel active" id="rpanel0">
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">訂單狀態</div>
         <table class="rule-table">
           <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">訂單狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
+          <thead><tr><th class="cond-col">條件</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
           <tbody>
-            <tr><td>暫存</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售申請</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>出售補正</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>退購申請 / 補件 / 核准</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:12px 0 6px">發票狀態</div>
-        <table class="rule-table">
-          <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">發票狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
-          <tbody>
-            <tr><td>未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>申請中</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已開立</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已折讓</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已作廢</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
+            <tr><td>訂單：暫存 / 出售補正 / 出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>發票：未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>其餘狀態</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
           </tbody>
         </table>
         <div class="rule-highlights">
@@ -549,28 +541,13 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 
       <!-- 匯款 -->
       <div class="rule-panel" id="rpanel1">
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">訂單狀態</div>
         <table class="rule-table">
           <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">訂單狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
+          <thead><tr><th class="cond-col">條件</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
           <tbody>
-            <tr><td>暫存</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售申請</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>出售補正</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>退購申請 / 補件 / 核准</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:12px 0 6px">發票狀態</div>
-        <table class="rule-table">
-          <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">發票狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
-          <tbody>
-            <tr><td>未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>申請中</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已開立</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已折讓</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已作廢</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
+            <tr><td>訂單：暫存 / 出售補正 / 出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>發票：未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>其餘狀態</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
           </tbody>
         </table>
         <div class="rule-highlights">
@@ -581,28 +558,15 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 
       <!-- 貸款 -->
       <div class="rule-panel" id="rpanel2">
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">訂單狀態</div>
         <table class="rule-table">
           <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">訂單狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th><th class="act-col">同意書</th></tr></thead>
+          <thead><tr><th class="cond-col">條件</th><th class="act-col">新增</th><th class="act-col">刪除</th><th class="act-col">同意書</th></tr></thead>
           <tbody>
-            <tr><td>暫存</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售申請</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>出售補正</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>退購申請 / 補件 / 核准</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:12px 0 6px">發票狀態</div>
-        <table class="rule-table">
-          <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">發票狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th><th class="act-col">同意書</th></tr></thead>
-          <tbody>
-            <tr><td>未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>申請中</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>已開立</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>已折讓</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已作廢</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
+            <tr><td>訂單：暫存 / 出售補正 / 出售核准</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>發票：未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>發票：申請中 / 已開立</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>貸款入款已完成</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
+            <tr><td>其餘狀態</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
           </tbody>
         </table>
         <div class="rule-highlights">
@@ -615,28 +579,13 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
 
       <!-- 信用卡 -->
       <div class="rule-panel" id="rpanel3">
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">訂單狀態</div>
         <table class="rule-table">
           <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">訂單狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
+          <thead><tr><th class="cond-col">條件</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
           <tbody>
-            <tr><td>暫存</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售申請</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>出售補正</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>出售核准</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>退購申請 / 補件 / 核准</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:12px 0 6px">發票狀態</div>
-        <table class="rule-table">
-          <colgroup><col class="cond-col"/><col class="act-col"/><col class="act-col"/></colgroup>
-          <thead><tr><th class="cond-col">發票狀態</th><th class="act-col">新增</th><th class="act-col">刪除</th></tr></thead>
-          <tbody>
-            <tr><td>未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
-            <tr><td>申請中</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已開立</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已折讓</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
-            <tr><td>已作廢</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
+            <tr><td>訂單：暫存 / 出售補正</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>發票：未開立</td><td class="act-cell rule-ok">✓</td><td class="act-cell rule-ok">✓</td></tr>
+            <tr><td>其餘狀態</td><td class="act-cell rule-no">✗</td><td class="act-cell rule-no">✗</td></tr>
           </tbody>
         </table>
         <div class="rule-highlights">
@@ -715,11 +664,11 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
       <table class="tbl">
         <colgroup>
           <col class="c-op"/><col class="c-date"/><col class="c-seq"/>
-          <col class="c-amt"/><col class="c-bank"/><col class="c-last5"/><col class="c-name"/>
+          <col class="c-amt"/><col class="c-bank"/><col class="c-last5"/><col class="c-acct"/><col class="c-name"/>
         </colgroup>
         <thead><tr>
           <th>操作</th><th>入帳時間</th><th>匯款序號</th>
-          <th>匯款總額</th><th>匯款銀行</th><th>帳號末5碼</th><th>匯款人</th>
+          <th>匯款總額</th><th>匯款銀行</th><th>帳號末5碼</th><th>帳戶名稱</th><th>匯款人</th>
         </tr></thead>
         <tbody id="resultBody"></tbody>
       </table>
@@ -955,13 +904,19 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
         </div>
       </div>
       <div class="fg">
-        <label>利率</label>
+        <label>利率 <span class="req">*</span></label>
         <div class="input-suffix">
-          <input type="number" id="loanRate" min="0" step="0.01" placeholder="如：2.5"/>
+          <input type="number" id="loanRate" min="0" step="0.01" placeholder="如：2.5" oninput="updateLoanSaveBtn()"/>
           <span class="suffix-label">%</span>
         </div>
       </div>
       <div class="fg span2"><!-- spacer --></div>
+
+      <!-- 備註（非必填） -->
+      <div class="fg span4">
+        <label>備註</label>
+        <textarea id="loanRemark" placeholder="選填說明" rows="3" style="padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;resize:vertical;font-family:inherit;width:100%"></textarea>
+      </div>
 
       <!-- 貸款同意書 -->
       <div class="fg span4">
@@ -1065,11 +1020,6 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
       <div class="order-info-item"><span class="oi-label">車牌</span><span class="oi-value">RAC-1234</span></div>
       <div class="order-info-item"><span class="oi-label">買受人</span><span class="oi-value">王小明 / A123456789</span></div>
     </div>
-    <div class="order-info-row">
-      <div class="order-info-item"><span class="oi-label">發票金額</span><span class="oi-value oi-amount" id="oiInvoiceAmt">NT$ 300,000 元</span></div>
-      <div class="order-info-item"><span class="oi-label">已登錄金額</span><span class="oi-value" id="oiRegistered">NT$ 0 元</span></div>
-      <div class="order-info-item"><span class="oi-label">待登錄餘額</span><span class="oi-value oi-remain" id="oiRemain">NT$ 300,000 元</span></div>
-    </div>
   </div>
 
   <!-- 現金收款資訊（卡片欄位式，訂單列下方） -->
@@ -1125,11 +1075,11 @@ button.pay-info-tag:hover{filter:brightness(0.95)}
       <table class="tbl">
         <colgroup>
           <col class="c-op"/><col class="c-date"/><col class="c-seq"/>
-          <col class="c-amt"/><col class="c-bank"/><col class="c-last5"/><col class="c-name"/>
+          <col class="c-amt"/><col class="c-bank"/><col class="c-last5"/><col class="c-acct"/><col class="c-name"/>
         </colgroup>
         <thead><tr>
           <th>操作</th><th>入帳時間</th><th>匯款序號</th>
-          <th>匯款總額</th><th>匯款銀行</th><th>帳號末5碼</th><th>匯款人</th>
+          <th>匯款總額</th><th>匯款銀行</th><th>帳號末5碼</th><th>帳戶名稱</th><th>匯款人</th>
         </tr></thead>
         <tbody id="c2wResultBody"></tbody>
       </table>
@@ -1448,13 +1398,13 @@ function getLockReason(method){
 }
 
 const wireData=[
-  {id:'W001',date:'2024/05/28',seq:'12345',total:38000,allocated:37000,bank:'台新銀行(812)',last5:'44986',name:'數來寶有限公司',
+  {id:'W001',date:'2024/05/28',seq:'12345',total:38000,allocated:37000,bank:'台新銀行(812)',last5:'44986',acctName:'數來寶有限公司',name:'數來寶有限公司',
     details:[{order:'P2026060001',amt:20000},{order:'P2026060002',amt:17000}]},
-  {id:'W002',date:'2024/05/28',seq:'65432',total:100000,allocated:0,bank:'台新銀行(812)',last5:'44986',name:'數來寶有限公司',details:[]},
-  {id:'W003',date:'2024/05/28',seq:'32424',total:53000,allocated:0,bank:'中國信託(822)',last5:'44986',name:'數來寶有限公司',details:[]},
-  {id:'W004',date:'2024/05/28',seq:'23455',total:98000,allocated:65000,bank:'中國信託(822)',last5:'44986',name:'數來寶有限公司',
+  {id:'W002',date:'2024/05/28',seq:'65432',total:100000,allocated:0,bank:'台新銀行(812)',last5:'44986',acctName:'數來寶有限公司',name:'數來寶有限公司',details:[]},
+  {id:'W003',date:'2024/05/28',seq:'32424',total:53000,allocated:0,bank:'中國信託(822)',last5:'44986',acctName:'數來寶有限公司',name:'王小明',details:[]},
+  {id:'W004',date:'2024/05/28',seq:'23455',total:98000,allocated:65000,bank:'中國信託(822)',last5:'44986',acctName:'數來寶有限公司',name:'數來寶有限公司',
     details:[{order:'P2026050010',amt:50000},{order:'P2026060002',amt:15000}]},
-  {id:'W005',date:'2024/05/28',seq:'65544',total:11000,allocated:11000,bank:'中國信託(822)',last5:'44986',name:'數來寶有限公司',
+  {id:'W005',date:'2024/05/28',seq:'65544',total:11000,allocated:11000,bank:'中國信託(822)',last5:'44986',acctName:'數來寶有限公司',name:'數來寶有限公司',
     details:[{order:'P2026060003',amt:11000}]},
 ];
 
@@ -1525,6 +1475,7 @@ function selectMethod(method){
 
 /* ── Wire Modal ── */
 const BUYER = { name: '王小明', id: 'A123456789' };
+const CASH_RECEIVER_NAME = '王業務'; // 現金收款人固定為收現金的業務，非買受人
 let proxyFileList = [];
 let isProxyMode = false;
 
@@ -1663,7 +1614,7 @@ function renderResult(){
       <td><button class="btn-sel${isSel?' active':''}" onclick="selectWire('${r.id}')">${isSel?'已選':'選擇'}</button></td>
       <td>${r.date}</td><td>${r.seq}</td>
       <td style="text-align:right">${fmt(r.total)}</td>
-      <td>${r.bank}</td><td>${r.last5}</td><td>${r.name}</td>
+      <td>${r.bank}</td><td>${r.last5}</td><td>${r.acctName||"—"}</td><td>${r.name}</td>
     </tr>`;
   }).join('');
 }
@@ -1775,7 +1726,7 @@ function doSave(){
     category,method:'匯款',amount:amt,
     seq:r.seq,wireId:r.id,
     wireDate:r.date,wireTotal:r.total,
-    bank:r.bank,last5:r.last5,payerName:r.name,
+    bank:r.bank,last5:r.last5,acctName:r.acctName,payerName:r.name,
     isProxy:isProxyMode,
     proxyFiles:isProxyMode?proxyFiles:[],
   });
@@ -1913,6 +1864,7 @@ function resetLoanModal(){
   ['loanRate','loanTotal','loanCar'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('loanPeriod').value='0';
   document.getElementById('loanNote').value='';
+  document.getElementById('loanRemark').value='';
   document.getElementById('loanInstitution').selectedIndex=0;
   document.getElementById('loanTaxId').value='';
   document.getElementById('loanFileDisplay').innerHTML='';
@@ -1923,7 +1875,7 @@ function resetLoanModal(){
   document.getElementById('loanAmtErr').textContent='';
   document.getElementById('loanNextStepBanner').style.display='none';
   // 確保所有欄位回到可編輯狀態（上傳同意書模式可能鎖住它們）
-  ['loanCategory','loanTotal','loanCar','loanPeriod','loanRate','loanInstitution'].forEach(id=>{
+  ['loanCategory','loanTotal','loanCar','loanPeriod','loanRate','loanInstitution','loanRemark'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.disabled=false;
   });
   // 還原標題與按鈕
@@ -1974,8 +1926,9 @@ function updateLoanSaveBtn(){
   const inst=document.getElementById('loanInstitution').value;
   const total=parseInt(document.getElementById('loanTotal').value)||0;
   const car=parseInt(document.getElementById('loanCar').value)||0;
+  const rate=document.getElementById('loanRate').value.trim();
   const hasAmtErr=document.getElementById('loanAmtErr').textContent!=='';
-  const ok=period!=='' && !!inst && total>0 && car>0 && !hasAmtErr && car<=total;
+  const ok=period!=='' && !!inst && total>0 && car>0 && rate!=='' && !hasAmtErr && car<=total;
   document.getElementById('loanSaveBtn').disabled=!ok;
   // 顯示 nextStep banner
   const banner=document.getElementById('loanNextStepBanner');
@@ -2042,7 +1995,8 @@ function doSaveLoan(){
   const rate=document.getElementById('loanRate').value.trim();
   const taxId=document.getElementById('loanTaxId').value.trim();
   const note=document.getElementById('loanNote').value.trim();
-  if(!total||!car||!inst||period==='')return;
+  const remark=document.getElementById('loanRemark').value.trim();
+  if(!total||!car||!inst||period===''||rate==='')return;
   const over=total-car;
   const loanFiles=loanFileList.map(f=>({
     name:f.name,
@@ -2051,7 +2005,7 @@ function doSaveLoan(){
   }));
   payRecords.push({
     category:cat,method:'貸款',amount:total,seq:'',meta:`${inst}｜${period}期`,
-    institution:inst,taxId,period,rate,carAmt:car,overAmt:over,note,
+    institution:inst,taxId,period,rate,carAmt:car,overAmt:over,note,remark,
     loanFiles,
     loanStep:2,
     sapStatus:'NULL',
@@ -2071,18 +2025,32 @@ function resetCashModal(){
   document.getElementById('cashCategory').selectedIndex=0;
   document.getElementById('cashTime').value=todayStr();
   document.getElementById('cashRemark').value='';
-  document.getElementById('cashReceiver').value=BUYER.name;
+  document.getElementById('cashReceiver').value=CASH_RECEIVER_NAME;
 }
 function todayStr(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+/* ── 成功提示 Toast ── */
+function showToast(msg,duration=3000){
+  const wrap=document.getElementById('toastWrap');
+  if(!wrap) return;
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<span>✓</span><span>${msg}</span>`;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(),250);
+  },duration);
 }
 function doSaveCash(){
   const cat=document.getElementById('cashCategory').value;
   const amt=parseInt(document.getElementById('cashAmount').value)||0;
   const time=document.getElementById('cashTime').value;
   const remark=document.getElementById('cashRemark').value.trim();
-  const receiver=document.getElementById('cashReceiver').value||BUYER.name;
+  const receiver=document.getElementById('cashReceiver').value||CASH_RECEIVER_NAME;
   if(!amt||!time){alert('請填寫收款金額與收款日期');return;}
   const displayDate=time.replace(/-/g,'/');
   payRecords.push({category:cat,method:'現金',amount:amt,time:time,date:time,remark,receiver,meta:displayDate});
@@ -2259,7 +2227,7 @@ function renderC2wResult(){
       <td><button class="btn-sel${isSel?' active':''}" onclick="selectC2wWire('${r.id}')">${isSel?'已選':'選擇'}</button></td>
       <td>${r.date}</td><td>${r.seq}</td>
       <td style="text-align:right">${fmt(r.total)}</td>
-      <td>${r.bank}</td><td>${r.last5}</td><td>${r.name}</td>
+      <td>${r.bank}</td><td>${r.last5}</td><td>${r.acctName||"—"}</td><td>${r.name}</td>
     </tr>`;
   }).join('');
 }
@@ -2315,14 +2283,16 @@ function doSaveCashToWire(){
   const r=wireData.find(x=>x.id===c2wSelectedId);
   const cat=document.getElementById('c2wCategory').value;
   const rec=payRecords[c2wSourceIndex];
-  // 保留 method='現金'，只補充匯款來源資訊，標記已轉匯
+  // 轉換後付款方式變更為「匯款」，並標記來源為現金轉匯
   rec.category=cat;
+  rec.method='匯款';
   rec.seq=r.seq;
   rec.wireId=r.id;
   rec.wireDate=r.date;
   rec.wireTotal=r.total;
   rec.bank=r.bank;
   rec.last5=r.last5;
+  rec.acctName=r.acctName;
   rec.payerName=r.name;
   rec.fromCash=true;
   rec.convertedToWire=true; // 標記已完成轉匯（隱藏操作選項）
@@ -2334,6 +2304,7 @@ function doSaveCashToWire(){
   renderPayList();
   updateTotals();
   closeCashToWireModal();
+  showToast('已成功將現金轉為匯款支付');
 }
 
 
@@ -2689,6 +2660,7 @@ document.getElementById('loanWirePopup').addEventListener('loan-wire-confirmed',
   rec.loanWireTotal=d.loanWireTotal;
   rec.loanBank=d.loanBank;
   rec.loanLast5=d.loanLast5;
+  rec.loanAcctName=d.loanAcctName;
   rec.loanPayerName=d.loanPayerName;
   rec.loanWireAmt=d.loanWireAmt;
   renderPayList();
@@ -2829,7 +2801,7 @@ function renderPayList(){
     // ── 額外資訊 tags ──
     const tags=[];
     if(rec.convertedToWire)
-      tags.push(`<span class="pay-info-tag" style="color:#854F0B;background:#FAEEDA">已轉匯款</span>`);
+      tags.push(`<span class="pay-info-tag" style="color:#854F0B;background:#FAEEDA">現金轉匯</span>`);
     if(rec.method==='匯款'&&rec.isProxy)
       tags.push(`<span class="pay-info-tag" style="color:#854F0B;background:#FEF3E8;border:0.5px solid #F0A45A">代付車款</span>`);
     if(isLoan&&hasOver)
@@ -3123,10 +3095,10 @@ function openDetailModal(i){
       {label:'期數',value:rec.period?rec.period+' 期':'—'},
       {label:'利率',value:rec.rate?rec.rate+' %':'—'},
       {label:'貸款總額',value:rec.amount?fmt(rec.amount)+' 元':'—'},
-      {label:'車貸額度',value:rec.carAmt?fmt(rec.carAmt)+' 元':'—'},
       {label:'超貸額度',value:(rec.overAmt||0)>0?fmt(rec.overAmt)+' 元':'無'},
     ];
     if(rec.note) loanInfoFields.push({label:'說明',value:rec.note});
+    if(rec.remark) loanInfoFields.push({label:'備註',value:rec.remark});
     if(rec.loanFiles&&rec.loanFiles.length) loanInfoFields.push({label:'貸款同意書',value:rec.loanFiles.map(fileLink).join('')});
 
     // Tab 2：供應商資訊
@@ -3148,6 +3120,7 @@ function openDetailModal(i){
       {label:'匯款序號',value:rec.wireSeq||'—'},
       {label:'匯入銀行',value:rec.loanBank||'—'},
       {label:'匯入帳號末五碼',value:rec.loanLast5||'—'},
+      {label:'帳戶名稱',value:rec.loanAcctName||'—'},
       {label:'匯款人',value:rec.loanPayerName||'—'},
       {label:'匯款總額',value:rec.loanWireTotal?fmt(rec.loanWireTotal)+' 元':'—'},
       {label:'本筆分配金額',value:rec.loanWireAmt?fmt(rec.loanWireAmt)+' 元':'—'},
@@ -3205,6 +3178,7 @@ function buildDetailFields(rec){
     fields.push({label:'匯款序號',value:rec.seq||'—'});
     fields.push({label:'匯入銀行',value:rec.bank||'—'});
     fields.push({label:'匯入帳號末五碼',value:rec.last5||'—'});
+    fields.push({label:'帳戶名稱',value:rec.acctName||'—'});
     fields.push({label:'匯款人',value:rec.payerName||'—'});
     fields.push({label:'匯款總額',value:rec.wireTotal?fmt(rec.wireTotal)+' 元':'—'});
     fields.push({label:'本筆分配金額',value:fmt(rec.amount)+' 元'});
@@ -3233,7 +3207,7 @@ function buildDetailFields(rec){
     // 貸款用 tab，直接回傳特殊標記
     return [{type:'loan-tabs',rec}];
   } else if(rec.method==='現金'){
-    fields.push({label:'收款人',value:rec.receiver||BUYER.name});
+    fields.push({label:'收款人',value:rec.receiver||CASH_RECEIVER_NAME});
     fields.push({label:'收款日期',value:rec.time?rec.time.replace(/-/g,'/'):'—'});
     if(rec.remark) fields.push({label:'備註',value:rec.remark});
     // 已轉匯：加上匯款資料
@@ -3243,6 +3217,7 @@ function buildDetailFields(rec){
       fields.push({label:'匯款序號',value:rec.seq||'—'});
       fields.push({label:'匯入銀行',value:rec.bank||'—'});
       fields.push({label:'帳號末五碼',value:rec.last5||'—'});
+      fields.push({label:'帳戶名稱',value:rec.acctName||'—'});
       fields.push({label:'匯款人',value:rec.payerName||'—'});
       fields.push({label:'匯款總額',value:rec.wireTotal?fmt(rec.wireTotal)+' 元':'—'});
       fields.push({label:'本筆分配金額',value:fmt(rec.amount)+' 元'});
@@ -3288,14 +3263,14 @@ function loadTestData(){
   payRecords=[
     /* ── 現金 1：一般現金，未轉匯 ── */
     {category:'訂金',method:'現金',amount:30000,
-     time:'2026-03-01',date:'2026-03-01',remark:'現場收取',meta:'2026/03/01',receiver:'王小明'},
+     time:'2026-03-01',date:'2026-03-01',remark:'現場收取',meta:'2026/03/01',receiver:CASH_RECEIVER_NAME},
 
-    /* ── 現金 2：已轉匯款（convertedToWire=true） ── */
-    {category:'尾款',method:'現金',amount:20000,
-     time:'2026-03-10',date:'2026-03-10',remark:'已完成轉匯',meta:'2026/03/10',receiver:'王小明',
+    /* ── 現金轉匯款（轉換後 method 變更為「匯款」，標示現金轉匯） ── */
+    {category:'尾款',method:'匯款',amount:20000,
+     time:'2026-03-10',date:'2026-03-10',remark:'已完成轉匯',meta:'序號 W240310001',receiver:CASH_RECEIVER_NAME,
      convertedToWire:true,
      wireDate:'2024/05/28',seq:'W240310001',bank:'台新銀行(812)',last5:'44986',
-     payerName:'王小明',wireTotal:20000,fromCash:true},
+     acctName:'王小明',payerName:'王小明',wireTotal:20000,fromCash:true},
 
     /* ── 匯款 1：客戶自匯，無代付 ── */
     {category:'訂金',method:'匯款',amount:50000,
@@ -3335,7 +3310,7 @@ function loadTestData(){
      institution:'國泰世華',taxId:'03077333',period:'48',rate:'2.8',
      loanStep:4,sapStatus:'NULL',loanFiles:loanFilesMock,
      wireSeq:'W240320001',loanWireDate:'2024/05/30',loanWireTotal:50000,
-     loanBank:'國泰世華(013)',loanLast5:'99001',loanPayerName:'國泰世華銀行',loanWireAmt:50000},
+     loanBank:'國泰世華(013)',loanLast5:'99001',loanAcctName:'國泰世華銀行',loanPayerName:'國泰世華銀行',loanWireAmt:50000},
 
     /* ── 貸款 4：有超貸，sapStatus=NULL（供應商帳戶尚未建立） ── */
     {category:'尾款',method:'貸款',amount:120000,carAmt:100000,overAmt:20000,
@@ -3362,7 +3337,7 @@ function loadTestData(){
      institution:'中國信託',taxId:'03077208',period:'36',rate:'2.6',
      loanStep:4,sapStatus:'APPROVING',loanFiles:loanFilesMock,
      wireSeq:'W240305001',loanWireDate:'2024/05/30',loanWireTotal:65000,
-     loanBank:'台新銀行(812)',loanLast5:'44986',loanPayerName:'玉山銀行',loanWireAmt:60000},
+     loanBank:'台新銀行(812)',loanLast5:'44986',loanAcctName:'玉山銀行',loanPayerName:'玉山銀行',loanWireAmt:60000},
   ];
 
   renderPayList();
